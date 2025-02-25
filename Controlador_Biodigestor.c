@@ -3,14 +3,16 @@
 #include "hardware/pwm.h"
 #include "pico/bootrom.h"
 
-#define PWM_AGITADOR 22
+#define PWM_AGITADOR 20
 #define BUTTON_A 5
-#define BUTTON_BOOTSEL 6
+#define BUTTON_B 6
+#define BUTTON_BOOTSEL 22
 
 #define LED_GREEN 11
+#define LED_BLUE 12
 #define LED_RED 13
 
-uint pwm_setup(){
+uint pwm__agitador_setup(){
     gpio_set_function(PWM_AGITADOR, GPIO_FUNC_PWM);
     uint slice = pwm_gpio_to_slice_num(PWM_AGITADOR);
     pwm_config config = pwm_get_default_config();
@@ -18,6 +20,23 @@ uint pwm_setup(){
     pwm_init(slice, &config, true);
 
     return slice;
+}
+
+uint pwm_led_bombas_setup(){
+    /* 60Hz é o max de algumas bombas*/
+    gpio_set_function(LED_BLUE, GPIO_FUNC_PWM);
+    gpio_set_function(LED_GREEN, GPIO_FUNC_PWM);
+
+    uint slice = pwm_gpio_to_slice_num(LED_BLUE);
+    pwm_config config = pwm_get_default_config();
+    pwm_config_set_clkdiv(&config, 32); // (125*10⁶)/(32*65536) = aprox 60Hz
+    pwm_init(slice, &config, true);
+
+    uint slice1 = pwm_gpio_to_slice_num(LED_GREEN);
+    pwm_config config1 = pwm_get_default_config();
+    pwm_config_set_clkdiv(&config1, 32); // (125*10⁶)/(32*65536) = aprox 60Hz
+    pwm_init(slice1, &config, true);
+
 }
 
 volatile uint32_t last_time;
@@ -36,10 +55,31 @@ void gpio_irq_handler(uint gpio, uint32_t event_mask) {
         }
     }   
 }
+
+void bomba_de_entrada(int* tanque, float duty_cycle){
+    /* Bomba de lobulos */
+    int rpm_entrada = 1300 * duty_cycle; // max
+    int vazao = (rpm_entrada * 16)/1300; //max 16 m3 por minuto, nesse prototipo sera m3 por segundo
+    (*tanque)+=vazao;
+    printf("RPM ENTRADA: %d\n", rpm_entrada);
+    printf("VAZAO ENTRADA: %d m³/min\n", vazao);
+    pwm_set_gpio_level(LED_GREEN, 0xffff*duty_cycle);
+}
+
+void bomba_de_saida(int* tanque, float duty_cycle){
+    /* Bomba de lobulos */
+    int rpm_saida = 1300 * duty_cycle; // max
+    int vazao = (rpm_saida * 16)/1300; //max 16 m3 por minuto, nesse prototipo sera m3 por segundo
+    (*tanque)-=vazao;
+    printf("RPM SAÍDA: %d\n", rpm_saida);
+    printf("VAZAO SAÍDA: %d m³/min\n", vazao);
+    pwm_set_gpio_level(LED_BLUE, 0xffff*duty_cycle);
+
+}
 int main()
 {
     stdio_init_all();
-    uint slice = pwm_setup();
+    uint slice = pwm__agitador_setup();
 
     
     gpio_init(LED_RED);
@@ -48,9 +88,16 @@ int main()
     gpio_init(LED_GREEN);
     gpio_set_dir(LED_GREEN, GPIO_OUT);
 
+    gpio_init(LED_BLUE);
+    gpio_set_dir(LED_BLUE, GPIO_OUT);
+
     gpio_init(BUTTON_A);
     gpio_set_dir(BUTTON_A, GPIO_IN);
     gpio_pull_up(BUTTON_A);
+
+    gpio_init(BUTTON_B);
+    gpio_set_dir(BUTTON_B, GPIO_IN);
+    gpio_pull_up(BUTTON_B);
 
     gpio_init(BUTTON_BOOTSEL);
     gpio_set_dir(BUTTON_BOOTSEL, GPIO_IN);
@@ -61,10 +108,10 @@ int main()
     gpio_set_irq_enabled_with_callback(BUTTON_A, GPIO_IRQ_EDGE_FALL, true, &gpio_irq_handler);
     bool going_up = true;
     float initial_dutycicle = 0.025;
+    int tanque = 0;
     while (true) {
         pwm_set_gpio_level(PWM_AGITADOR, 0xffff*initial_dutycicle);
         if (agitador_on){
-            gpio_put(LED_GREEN, 0);
             gpio_put(LED_RED, 1);
             sleep_ms(10);
             if (going_up){
@@ -81,8 +128,12 @@ int main()
         }
         else {
             gpio_put(LED_RED, 0);
-            gpio_put(LED_GREEN, 1);
         }
+        bomba_de_entrada(&tanque, 1);
+        bomba_de_saida(&tanque, 0);
+        printf("TANQUE: %dm³\n", tanque);
+
+        sleep_ms(1000);
         // Regra de três para encontrar a porcentagem do dutycicle
         // 2400ms -> 0.12 ou 12%
         // 5ms -> 1/4000 = 0.00025 ou 0.025%

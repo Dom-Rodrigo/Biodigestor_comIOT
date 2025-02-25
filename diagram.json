@@ -54,7 +54,6 @@
     [ "pico:GP1", "$serialMonitor:TX", "", [] ],
     [ "pico:3V3", "servo1:V+", "red", [ "h20.4", "v9.6" ] ],
     [ "pico:GND.8", "servo1:GND", "black", [ "h30", "v19.2" ] ],
-    [ "pico:GP22", "servo1:PWM", "gold", [ "h49.2", "v-48" ] ],
     [ "pico:GP5", "btn1:1.r", "red", [ "h-19.2", "v-19.2" ] ],
     [ "pico:GND.2", "btn1:2.r", "black", [ "h-28.8", "v-9.6" ] ],
     [ "pico:GP11", "r1:2", "red", [ "h0" ] ],
@@ -65,7 +64,8 @@
     [ "led3:A", "r1:1", "green", [ "v0" ] ],
     [ "led1:C", "pico:GND.4", "black", [ "v48", "h211.6" ] ],
     [ "pico:GND.4", "led2:C", "black", [ "h0" ] ],
-    [ "pico:GND.4", "led3:C", "black", [ "h0" ] ]
+    [ "pico:GND.4", "led3:C", "black", [ "h0" ] ],
+    [ "pico:GP20", "servo1:PWM", "gold", [ "h30", "v-76.8", "h38.4" ] ]
   ],
   "dependencies": {}
 }
