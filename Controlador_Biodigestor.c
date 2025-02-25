@@ -12,27 +12,13 @@
 #define LED_BLUE 12
 #define LED_RED 13
 
-uint pwm__agitador_setup(){
-    gpio_set_function(PWM_AGITADOR, GPIO_FUNC_PWM);
-    uint slice = pwm_gpio_to_slice_num(PWM_AGITADOR);
-    pwm_config config = pwm_get_default_config();
-    pwm_config_set_clkdiv(&config, 38.4);
-    pwm_init(slice, &config, true);
-
-    return slice;
-}
-
-uint pwm_led_bombas_setup(int gpio){
-    /* 60Hz é o max de algumas bombas*/
+uint pwm_setup(int gpio){
+    /* 60Hz pro motor e bombas*/
     gpio_set_function(gpio, GPIO_FUNC_PWM);
-
     uint slice = pwm_gpio_to_slice_num(gpio);
-    pwm_config config = pwm_get_default_config();
-    pwm_config_set_clkdiv(&config, 32); // (125*10⁶)/(32*65536) = aprox 60Hz
-    pwm_init(slice, &config, true);
-
+    pwm_set_wrap(slice, 65535);
+    pwm_set_clkdiv(slice, 32); // 442Hz
     return slice;
-
 }
 
 volatile uint32_t last_time;
@@ -60,6 +46,7 @@ void bomba_de_entrada(int* tanque, float duty_cycle){
     printf("RPM ENTRADA: %d\n", rpm_entrada);
     printf("VAZAO ENTRADA: %d m³/min\n", vazao);
     pwm_set_gpio_level(LED_GREEN, 0xffff*duty_cycle);
+
 }
 
 void bomba_de_saida(int* tanque, float duty_cycle){
@@ -69,25 +56,18 @@ void bomba_de_saida(int* tanque, float duty_cycle){
     (*tanque)-=vazao;
     printf("RPM SAÍDA: %d\n", rpm_saida);
     printf("VAZAO SAÍDA: %d m³/min\n", vazao);
-    pwm_set_gpio_level(LED_BLUE, 0xffff*duty_cycle);
+     pwm_set_gpio_level(LED_BLUE, 0xffff*duty_cycle);
 
 }
 int main()
 {
     stdio_init_all();
-    uint slice_agitador = pwm__agitador_setup();
-    uint slice_bomba_entrada = pwm_led_bombas_setup(LED_GREEN);
-    uint slice_bomba_saida = pwm_led_bombas_setup(LED_BLUE);
+    uint slice_agitador = pwm_setup(PWM_AGITADOR);
+    uint slice_bomba_entrada = pwm_setup(LED_GREEN);
+    uint slice_bomba_saida = pwm_setup(LED_BLUE);
 
-    
     gpio_init(LED_RED);
     gpio_set_dir(LED_RED, GPIO_OUT);
-
-    gpio_init(LED_GREEN);
-    gpio_set_dir(LED_GREEN, GPIO_OUT);
-
-    gpio_init(LED_BLUE);
-    gpio_set_dir(LED_BLUE, GPIO_OUT);
 
     gpio_init(BUTTON_A);
     gpio_set_dir(BUTTON_A, GPIO_IN);
