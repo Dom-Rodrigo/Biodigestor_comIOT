@@ -1,17 +1,32 @@
 {
-    "version": 1,
-    "author": "Rodrigo Almeida Piropo",
-    "editor": "wokwi",
-    "parts": [
-      { "type": "wokwi-pi-pico", "id": "pico", "top": -79.95, "left": -82.8, "attrs": {} },
-      { "type": "wokwi-servo", "id": "servo1", "top": -78.8, "left": 48, "attrs": {"horn": "double" } }
-    ],
-    "connections": [
-      [ "pico:GP0", "$serialMonitor:RX", "", [] ],
-      [ "pico:GP1", "$serialMonitor:TX", "", [] ],
-      [ "pico:3V3", "servo1:V+", "red", [ "h20.4", "v9.6" ] ],
-      [ "pico:GND.8", "servo1:GND", "black", [ "h30", "v19.2" ] ],
-      [ "pico:GP22", "servo1:PWM", "gold", [ "h49.2", "v-48" ] ]
-    ],
-    "dependencies": {}
-  }
+  "version": 1,
+  "author": "Rodrigo Almeida Piropo",
+  "editor": "wokwi",
+  "parts": [
+    { "type": "wokwi-pi-pico", "id": "pico", "top": -79.95, "left": -82.8, "attrs": {} },
+    {
+      "type": "wokwi-servo",
+      "id": "servo1",
+      "top": -78.8,
+      "left": 48,
+      "attrs": { "horn": "double" }
+    },
+    {
+      "type": "wokwi-pushbutton",
+      "id": "btn1",
+      "top": -41.8,
+      "left": -201.6,
+      "attrs": { "color": "green", "xray": "1" }
+    }
+  ],
+  "connections": [
+    [ "pico:GP0", "$serialMonitor:RX", "", [] ],
+    [ "pico:GP1", "$serialMonitor:TX", "", [] ],
+    [ "pico:3V3", "servo1:V+", "red", [ "h20.4", "v9.6" ] ],
+    [ "pico:GND.8", "servo1:GND", "black", [ "h30", "v19.2" ] ],
+    [ "pico:GP22", "servo1:PWM", "gold", [ "h49.2", "v-48" ] ],
+    [ "pico:GP5", "btn1:1.r", "red", [ "h-19.2", "v-19.2" ] ],
+    [ "pico:GND.2", "btn1:2.r", "black", [ "h-28.8", "v-9.6" ] ]
+  ],
+  "dependencies": {}
+}
