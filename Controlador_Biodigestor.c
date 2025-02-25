@@ -64,6 +64,8 @@ int main()
     while (true) {
         pwm_set_gpio_level(PWM_AGITADOR, 0xffff*initial_dutycicle);
         if (agitador_on){
+            gpio_put(LED_GREEN, 0);
+            gpio_put(LED_RED, 1);
             sleep_ms(10);
             if (going_up){
                 initial_dutycicle= initial_dutycicle - 0.00025;
@@ -76,6 +78,10 @@ int main()
                 if (initial_dutycicle >= 0.12)
                     going_up=true;
             } 
+        }
+        else {
+            gpio_put(LED_RED, 0);
+            gpio_put(LED_GREEN, 1);
         }
         // Regra de três para encontrar a porcentagem do dutycicle
         // 2400ms -> 0.12 ou 12%
