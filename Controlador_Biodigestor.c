@@ -87,6 +87,8 @@ int main()
     bool going_up = true;
     float initial_dutycicle = 0.025;
     int tanque = 0;
+    int limite_tanque = 6000;
+    
     while (true) {
         pwm_set_gpio_level(PWM_AGITADOR, 0xffff*initial_dutycicle);
         if (agitador_on){
@@ -105,10 +107,13 @@ int main()
             } 
         }
         else {
-            gpio_put(LED_RED, 0);
+            gpio_put(LED_RED, 0.5);
         }
         bomba_de_entrada(&tanque, 1);
-        bomba_de_saida(&tanque, 0);
+
+        if (tanque >= limite_tanque){
+                bomba_de_saida(&tanque, 1);
+        }
         printf("TANQUE: %dm³\n", tanque);
         // sleep_ms(1000);
     }
