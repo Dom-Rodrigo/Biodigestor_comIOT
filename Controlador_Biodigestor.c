@@ -22,20 +22,16 @@ uint pwm__agitador_setup(){
     return slice;
 }
 
-uint pwm_led_bombas_setup(){
+uint pwm_led_bombas_setup(int gpio){
     /* 60Hz é o max de algumas bombas*/
-    gpio_set_function(LED_BLUE, GPIO_FUNC_PWM);
-    gpio_set_function(LED_GREEN, GPIO_FUNC_PWM);
+    gpio_set_function(gpio, GPIO_FUNC_PWM);
 
-    uint slice = pwm_gpio_to_slice_num(LED_BLUE);
+    uint slice = pwm_gpio_to_slice_num(gpio);
     pwm_config config = pwm_get_default_config();
     pwm_config_set_clkdiv(&config, 32); // (125*10⁶)/(32*65536) = aprox 60Hz
     pwm_init(slice, &config, true);
 
-    uint slice1 = pwm_gpio_to_slice_num(LED_GREEN);
-    pwm_config config1 = pwm_get_default_config();
-    pwm_config_set_clkdiv(&config1, 32); // (125*10⁶)/(32*65536) = aprox 60Hz
-    pwm_init(slice1, &config, true);
+    return slice;
 
 }
 
@@ -79,7 +75,9 @@ void bomba_de_saida(int* tanque, float duty_cycle){
 int main()
 {
     stdio_init_all();
-    uint slice = pwm__agitador_setup();
+    uint slice_agitador = pwm__agitador_setup();
+    uint slice_bomba_entrada = pwm_led_bombas_setup(LED_GREEN);
+    uint slice_bomba_saida = pwm_led_bombas_setup(LED_BLUE);
 
     
     gpio_init(LED_RED);
@@ -132,10 +130,6 @@ int main()
         bomba_de_entrada(&tanque, 1);
         bomba_de_saida(&tanque, 0);
         printf("TANQUE: %dm³\n", tanque);
-
-        sleep_ms(1000);
-        // Regra de três para encontrar a porcentagem do dutycicle
-        // 2400ms -> 0.12 ou 12%
-        // 5ms -> 1/4000 = 0.00025 ou 0.025%
+        // sleep_ms(1000);
     }
 }
