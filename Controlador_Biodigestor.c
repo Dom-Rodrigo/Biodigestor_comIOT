@@ -141,7 +141,7 @@ int main()
     int tanque = 0;
     int limite_tanque = 6000;
     struct repeating_timer timer;
-    add_repeating_timer_ms(1000, repeating_timer_callback, false, &timer);
+    add_repeating_timer_ms(1000/12, repeating_timer_callback, false, &timer);
     
     int lapse = 0;
     int bomba_manual = 0;
@@ -204,14 +204,22 @@ int main()
                 // Então para caber na explicação. 1440/24 seg = 60 seg = 1min
                 // Um dia na vida real tem um minuto na simulacao.
                 lapse++;
+                if (lapse % 1440 == 0)
+
                 bomba_manual = 0;
                 bomba_de_entrada(&tanque, duty_bomba_entrada);
                 bomba_de_saida(&tanque, duty_bomba_saida);
                 pwm_set_gpio_level(LED_GREEN, 0xffff*duty_bomba_entrada);
 
-                if (tanque >= limite_tanque){
-                    duty_bomba_saida = 1;
+
+                if (tanque > limite_tanque){
+                    duty_bomba_saida = 1; // Sai até remover o excesso
+                    duty_bomba_entrada = 0;
                 }
+                if (tanque >= limite_tanque-500){ // 500m3 de folga
+                    duty_bomba_saida = duty_bomba_entrada;
+                }
+
                 pwm_set_gpio_level(LED_BLUE, 0xffff*duty_bomba_saida);
                 printf("TANQUE: %dm³\n", tanque);
                 one_lapse=!one_lapse;
