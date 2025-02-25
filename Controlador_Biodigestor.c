@@ -213,11 +213,14 @@ int main()
 
 
                 if (tanque > limite_tanque){
-                    duty_bomba_saida = 1; // Sai até remover o excesso
-                    duty_bomba_entrada = 0;
-                }
-                if (tanque >= limite_tanque-500){ // 500m3 de folga
-                    duty_bomba_saida = duty_bomba_entrada;
+                    if (tanque >= limite_tanque+50){
+                        duty_bomba_entrada = 0;
+                        duty_bomba_saida = 1; // Sai até remover o excesso BUZZER vai aqui
+                    }
+                    else {
+                        duty_bomba_saida = 1; // Estabiliza
+                        duty_bomba_entrada = 1;
+                    }
                 }
 
                 pwm_set_gpio_level(LED_BLUE, 0xffff*duty_bomba_saida);
