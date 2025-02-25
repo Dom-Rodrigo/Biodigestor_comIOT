@@ -57,6 +57,7 @@ target_include_directories(Controlador_Biodigestor PRIVATE
 target_link_libraries(Controlador_Biodigestor 
         hardware_pwm
         pico_bootrom
+        hardware_adc
         )
 
 pico_add_extra_outputs(Controlador_Biodigestor)

@@ -14,9 +14,9 @@
     {
       "type": "wokwi-pushbutton",
       "id": "btn1",
-      "top": -41.8,
+      "top": -147.4,
       "left": -201.6,
-      "attrs": { "color": "green", "xray": "1" }
+      "attrs": { "color": "black", "xray": "1" }
     },
     {
       "type": "wokwi-resistor",
@@ -47,6 +47,20 @@
       "top": 6,
       "left": -265,
       "attrs": { "color": "limegreen" }
+    },
+    {
+      "type": "wokwi-pushbutton",
+      "id": "btn2",
+      "top": -89.8,
+      "left": -201.6,
+      "attrs": { "color": "black", "xray": "1" }
+    },
+    {
+      "type": "wokwi-analog-joystick",
+      "id": "joystick1",
+      "top": -269.4,
+      "left": 43.8,
+      "attrs": {}
     }
   ],
   "connections": [
@@ -65,7 +79,14 @@
     [ "led1:C", "pico:GND.4", "black", [ "v48", "h211.6" ] ],
     [ "pico:GND.4", "led2:C", "black", [ "h0" ] ],
     [ "pico:GND.4", "led3:C", "black", [ "h0" ] ],
-    [ "pico:GP20", "servo1:PWM", "gold", [ "h30", "v-76.8", "h38.4" ] ]
+    [ "pico:GP20", "servo1:PWM", "gold", [ "h30", "v-76.8", "h38.4" ] ],
+    [ "pico:GP6", "btn2:1.r", "red", [ "h-38.4", "v-86.4", "h-9.6" ] ],
+    [ "pico:GND.3", "btn2:2.r", "black", [ "h-57.6", "v-9.6" ] ],
+    [ "pico:3V3", "joystick1:VCC", "red", [ "h20.4", "v-76.8", "h-38.4" ] ],
+    [ "joystick1:GND", "pico:GND.8", "black", [ "v105.6", "h-38.4" ] ],
+    [ "pico:GP27", "joystick1:VERT", "green", [ "h0" ] ],
+    [ "pico:GP26", "joystick1:HORZ", "green", [ "h106.8" ] ],
+    [ "pico:GP22", "joystick1:SEL", "green", [ "h116.4" ] ]
   ],
   "dependencies": {}
 }
