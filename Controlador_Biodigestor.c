@@ -185,7 +185,7 @@ int main()
                     pwm_set_gpio_level(LED_GREEN, 0xffff*duty_bomba_entrada);
 
                     if (tanque >= limite_tanque){
-                            bomba_de_saida(&tanque, 1);
+                        duty_bomba_saida = 1;
                     }
                     pwm_set_gpio_level(LED_BLUE, 0xffff*duty_bomba_saida);
                     printf("TANQUE: %dm³\n", tanque);
