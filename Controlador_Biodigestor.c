@@ -101,7 +101,7 @@ int main()
     ssd1306_config(&ssd); // Configura o display
     ssd1306_fill(&ssd, false); // Limpa display
     ssd1306_send_data(&ssd); // Envia os dados para o display
-    
+
     adc_init();
 
     uint slice_agitador = pwm_setup(PWM_AGITADOR);
@@ -143,79 +143,105 @@ int main()
     int bomba_manual = 0;
     float duty;
     while (true) {
-            pwm_set_gpio_level(PWM_AGITADOR, 0xffff*initial_dutycicle);
-            if (agitador_on){
-                gpio_put(LED_RED, 1);
-                sleep_ms(10);
-                if (going_up){
-                    initial_dutycicle= initial_dutycicle - 0.00025;
-                    if (initial_dutycicle <= 0.025)
-                        going_up=false;
-                }
-                else
-                {
-                    initial_dutycicle= initial_dutycicle + 0.00025;
-                    if (initial_dutycicle >= 0.12)
-                        going_up=true;
-                } 
+        pwm_set_gpio_level(PWM_AGITADOR, 0xffff*initial_dutycicle);
+        if (agitador_on){
+            gpio_put(LED_RED, 1);
+            sleep_ms(10);
+            if (going_up){
+                initial_dutycicle= initial_dutycicle - 0.00025;
+                if (initial_dutycicle <= 0.025)
+                    going_up=false;
             }
-            else {
-                gpio_put(LED_RED, 0);
-            }
-            if (one_lapse){
-                if (modo_manual){
-                    adc_select_input(0); 
-                    uint16_t vry_value = adc_read();
+            else
+            {
+                initial_dutycicle= initial_dutycicle + 0.00025;
+                if (initial_dutycicle >= 0.12)
+                    going_up=true;
+            } 
+        }
+        else {
+            gpio_put(LED_RED, 0);
+        }
+        if (one_lapse){
+            if (modo_manual){
+                adc_select_input(0); 
+                uint16_t vry_value = adc_read();
 
-                    adc_select_input(1); 
-                    uint16_t vrx_value = adc_read(); 
+                adc_select_input(1); 
+                uint16_t vrx_value = adc_read(); 
 
-                    if (vry_value < 30)
-                        bomba_manual = 1;
-                    if (vry_value > 4000)
-                        bomba_manual = 2;
-                    
-                    
-                    if (bomba_manual != 0){
-                        duty = (vrx_value/4090.0);
-                    }
-
-                    if (bomba_manual == 1)
-                        duty_bomba_entrada = round(duty * 10)/10;
-                    if (bomba_manual == 2)
-                        duty_bomba_saida = round(duty * 10)/10;
-
-                    if (duty_bomba_entrada - duty_bomba_saida <= 0.1){
-                        duty_bomba_entrada = duty_bomba_saida;
-                    }
-                    
-                    printf("CIMA: saída, BAIXO: entrada\n");
-                    printf("bomba: %d\n", bomba_manual);
-                    printf("entrada: %f\n", duty_bomba_entrada);
-                    printf("saida: %f\n", duty_bomba_saida);
-                    one_lapse=!one_lapse;
+                if (vry_value < 30)
+                    bomba_manual = 1;
+                if (vry_value > 4000)
+                    bomba_manual = 2;
+                
+                
+                if (bomba_manual != 0){
+                    duty = (vrx_value/4090.0);
                 }
-                else{
-                    // O dia tem 1440 minutos, 1440 segundos seria 24 minutos. 
-                    // Então para caber na explicação. 1440/24 seg = 60 seg = 1min
-                    // Um dia na vida real tem um minuto na simulacao.
-                    lapse++;
-                    bomba_manual = 0;
-                    bomba_de_entrada(&tanque, duty_bomba_entrada);
-                    bomba_de_saida(&tanque, duty_bomba_saida);
-                    pwm_set_gpio_level(LED_GREEN, 0xffff*duty_bomba_entrada);
 
-                    if (tanque >= limite_tanque){
-                        duty_bomba_saida = 1;
-                    }
-                    pwm_set_gpio_level(LED_BLUE, 0xffff*duty_bomba_saida);
-                    printf("TANQUE: %dm³\n", tanque);
-                    one_lapse=!one_lapse;
-                    
+                if (bomba_manual == 1)
+                    duty_bomba_entrada = round(duty * 10)/10;
+                if (bomba_manual == 2)
+                    duty_bomba_saida = round(duty * 10)/10;
+
+                if (duty_bomba_entrada - duty_bomba_saida <= 0.1){
+                    duty_bomba_entrada = duty_bomba_saida;
                 }
-       
+                
+                printf("CIMA: saída, BAIXO: entrada\n");
+                printf("bomba: %d\n", bomba_manual);
+                printf("entrada: %f\n", duty_bomba_entrada);
+                printf("saida: %f\n", duty_bomba_saida);
+                one_lapse=!one_lapse;
             }
+            else{
+                // O dia tem 1440 minutos, 1440 segundos seria 24 minutos. 
+                // Então para caber na explicação. 1440/24 seg = 60 seg = 1min
+                // Um dia na vida real tem um minuto na simulacao.
+                lapse++;
+                bomba_manual = 0;
+                bomba_de_entrada(&tanque, duty_bomba_entrada);
+                bomba_de_saida(&tanque, duty_bomba_saida);
+                pwm_set_gpio_level(LED_GREEN, 0xffff*duty_bomba_entrada);
 
+                if (tanque >= limite_tanque){
+                    duty_bomba_saida = 1;
+                }
+                pwm_set_gpio_level(LED_BLUE, 0xffff*duty_bomba_saida);
+                printf("TANQUE: %dm³\n", tanque);
+                one_lapse=!one_lapse;
+                
+            }
+    
+        }
+
+        // DISPLAY
+        ssd1306_fill(&ssd, false);
+        ssd1306_draw_string(&ssd, "TOTAL  1000dias", 0, 0);
+        ssd1306_draw_string(&ssd, "               ", 0, 8);
+
+        char linha_helice[15];
+        if (agitador_on){
+            sprintf(linha_helice, "HELICE %2s", "ON");
+        }
+        else{
+            sprintf(linha_helice, "HELICE %3s", "OFF");
+
+        }
+        ssd1306_draw_string(&ssd, linha_helice, 0, 16);
+        
+        ssd1306_draw_string(&ssd, "BOMBA1 ON  100 ", 0, 24);
+        ssd1306_draw_string(&ssd, "BOMBA2 ON  100 ", 0, 32);
+
+        char linha_tanque[15];
+        sprintf(linha_tanque, "VOLUME %d M3", tanque);
+        ssd1306_draw_string(&ssd, linha_tanque, 0, 40);
+
+        ssd1306_draw_string(&ssd, "TRH       100d ", 0, 48);
+        ssd1306_draw_string(&ssd, "Esvazia   2d10h", 0, 54);
+         // Desenha uma string
+        ssd1306_send_data(&ssd);
         // sleep_ms(1000);
     }
 }
