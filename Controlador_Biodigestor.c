@@ -65,6 +65,8 @@ void bomba_de_entrada(int* tanque, float duty_cycle){
     int rpm_entrada = 1300 * duty_cycle; // max
     int vazao = (rpm_entrada * 16)/1300; //max 16 m3 por minuto, nesse prototipo sera m3 por segundo
     (*tanque)+=vazao;
+    if (*tanque <= 0)
+        *tanque=0;
     printf("RPM ENTRADA: %d\n", rpm_entrada);
     printf("VAZAO ENTRADA: %d m³/min\n", vazao);
 
@@ -75,6 +77,8 @@ void bomba_de_saida(int* tanque, float duty_cycle){
     int rpm_saida = 1300 * duty_cycle; // max
     int vazao = (rpm_saida * 16)/1300; //max 16 m3 por minuto, nesse prototipo sera m3 por segundo
     (*tanque)-=vazao;
+    if (*tanque <= 0)
+        *tanque=0;
     printf("RPM SAÍDA: %d\n", rpm_saida);
     printf("VAZAO SAÍDA: %d m³/min\n", vazao);
 
@@ -185,9 +189,9 @@ int main()
                 if (bomba_manual == 2)
                     duty_bomba_saida = round(duty * 10)/10;
 
-                if (duty_bomba_entrada - duty_bomba_saida <= 0.1){
-                    duty_bomba_entrada = duty_bomba_saida;
-                }
+                // if (duty_bomba_entrada - duty_bomba_saida <= 0.1){
+                //     duty_bomba_entrada = duty_bomba_saida;
+                // }
                 
                 printf("CIMA: saída, BAIXO: entrada\n");
                 printf("bomba: %d\n", bomba_manual);
@@ -221,19 +225,42 @@ int main()
         ssd1306_draw_string(&ssd, "TOTAL  1000dias", 0, 0);
         ssd1306_draw_string(&ssd, "               ", 0, 8);
 
+        // LINHA QUE DIZ SE A HÉLICE DO AGITADOR ESTÁ FUNCIONANDO
         char linha_helice[15];
         if (agitador_on){
-            sprintf(linha_helice, "HELICE %2s", "ON");
+            sprintf(linha_helice, "HELICE ON");
         }
         else{
-            sprintf(linha_helice, "HELICE %3s", "OFF");
+            sprintf(linha_helice, "HELICE OFF");
 
         }
         ssd1306_draw_string(&ssd, linha_helice, 0, 16);
-        
-        ssd1306_draw_string(&ssd, "BOMBA1 ON  100 ", 0, 24);
-        ssd1306_draw_string(&ssd, "BOMBA2 ON  100 ", 0, 32);
 
+
+        // LINHA QUE MOSTRA ESTADO DA BOMBA COM DUTYCYCLE
+        char linha_entrada[15];
+        if (duty_bomba_entrada > 0.001){
+            sprintf(linha_entrada, "ENTRAD ON %.0f", duty_bomba_entrada*100);
+        }
+        else{
+            sprintf(linha_entrada, "ENTRAD OFF 0");
+
+        }
+        ssd1306_draw_string(&ssd, linha_entrada, 0, 24);
+
+
+        // LINHA QUE MOSTRA ESTADO DA BOMBA COM DUTYCYCLE
+        char linha_saida[15];
+        if (duty_bomba_saida > 0.001){
+            sprintf(linha_saida, "SAIDA  ON %.0f", duty_bomba_saida*100);
+        }
+        else{
+            sprintf(linha_saida, "SAIDA  OFF 0");
+
+        }
+        ssd1306_draw_string(&ssd, linha_saida, 0, 32);
+
+        // LINHA QUE MOSTRA O VOLUME DE SUBSTRATO NO TANQUE BIODIGESTOR
         char linha_tanque[15];
         sprintf(linha_tanque, "VOLUME %d M3", tanque);
         ssd1306_draw_string(&ssd, linha_tanque, 0, 40);
