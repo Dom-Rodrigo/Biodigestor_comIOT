@@ -35,7 +35,7 @@ pico_sdk_init()
 
 # Add executable. Default name is the project name, version 0.1
 
-add_executable(Controlador_Biodigestor Controlador_Biodigestor.c )
+add_executable(Controlador_Biodigestor Controlador_Biodigestor.c inc/ssd1306.c)
 
 pico_set_program_name(Controlador_Biodigestor "Controlador_Biodigestor")
 pico_set_program_version(Controlador_Biodigestor "0.1")
@@ -58,6 +58,7 @@ target_link_libraries(Controlador_Biodigestor
         hardware_pwm
         pico_bootrom
         hardware_adc
+        hardware_i2c
         )
 
 pico_add_extra_outputs(Controlador_Biodigestor)
