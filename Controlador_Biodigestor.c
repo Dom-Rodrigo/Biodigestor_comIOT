@@ -59,6 +59,13 @@ void bomba_de_saida(int* tanque, float duty_cycle){
      pwm_set_gpio_level(LED_BLUE, 0xffff*duty_cycle);
 
 }
+
+volatile bool one_lapse;
+bool repeating_timer_callback(struct repeating_timer *t){
+    one_lapse = true;
+    return true;
+}
+
 int main()
 {
     stdio_init_all();
@@ -88,7 +95,10 @@ int main()
     float initial_dutycicle = 0.025;
     int tanque = 0;
     int limite_tanque = 6000;
+    struct repeating_timer timer;
+    add_repeating_timer_ms(1000/24, repeating_timer_callback, false, &timer);
     
+    int lapse = 0;
     while (true) {
         pwm_set_gpio_level(PWM_AGITADOR, 0xffff*initial_dutycicle);
         if (agitador_on){
@@ -109,12 +119,23 @@ int main()
         else {
             gpio_put(LED_RED, 0.5);
         }
-        bomba_de_entrada(&tanque, 1);
-
-        if (tanque >= limite_tanque){
-                bomba_de_saida(&tanque, 1);
+        if (one_lapse){
+            // O dia tem 1440 minutos, 1440 segundos seria 24 minutos. 
+            // Então para caber na explicação. 1440/24 seg = 60 seg = 1min
+            // Um dia na vida real tem um minuto na simulacao.
+            lapse++;
+            printf("time lapse: %d\n", lapse);
+            if (lapse%1440 == 0){
+                printf("<<<+1 dia.>>\n");
+            }
+            bomba_de_entrada(&tanque, 1);
+            if (tanque >= limite_tanque){
+                    bomba_de_saida(&tanque, 1);
+            }
+            printf("TANQUE: %dm³\n\n", tanque);
+            one_lapse=!one_lapse;
         }
-        printf("TANQUE: %dm³\n", tanque);
+
         // sleep_ms(1000);
     }
 }
