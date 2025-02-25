@@ -1,0 +1,4 @@
+[wokwi]
+version = 1
+firmware = 'build/Controlador_Biodigestor.uf2'
+elf = 'build/Controlador_Biodigestor.elf'
