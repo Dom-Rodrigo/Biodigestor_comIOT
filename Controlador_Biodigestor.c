@@ -3,6 +3,7 @@
 #include "hardware/pwm.h"
 #include "pico/bootrom.h"
 #include "hardware/adc.h"
+#include "math.h"
 
 #define PWM_AGITADOR 20
 
@@ -38,9 +39,8 @@ void gpio_irq_handler(uint gpio, uint32_t event_mask) {
             rom_reset_usb_boot(0, 0);
         }
         if (!gpio_get(BUTTON_A)) {
-            last_time = current_time;
             agitador_on=!agitador_on;
-            printf("%d\n", agitador_on);
+            last_time = current_time;
         }
         if (!gpio_get(BUTTON_B)) {
             modo_manual=!modo_manual;
@@ -116,20 +116,12 @@ int main()
     int tanque = 0;
     int limite_tanque = 6000;
     struct repeating_timer timer;
-    add_repeating_timer_ms(1000/24, repeating_timer_callback, false, &timer);
+    add_repeating_timer_ms(1000, repeating_timer_callback, false, &timer);
     
     int lapse = 0;
+    int bomba_manual = 0;
+    float duty;
     while (true) {
-        if (modo_manual){
-            adc_select_input(0); 
-            uint16_t vrx_value = adc_read();
-            printf("x: %d\n", vrx_value);
-            adc_select_input(1); 
-            uint16_t vry_value = adc_read(); 
-            printf("y: %d\n", vry_value);
-
-        }
-        else {
             pwm_set_gpio_level(PWM_AGITADOR, 0xffff*initial_dutycicle);
             if (agitador_on){
                 gpio_put(LED_RED, 1);
@@ -147,28 +139,61 @@ int main()
                 } 
             }
             else {
-                gpio_put(LED_RED, 0.5);
+                gpio_put(LED_RED, 0);
             }
             if (one_lapse){
-                // O dia tem 1440 minutos, 1440 segundos seria 24 minutos. 
-                // Então para caber na explicação. 1440/24 seg = 60 seg = 1min
-                // Um dia na vida real tem um minuto na simulacao.
-                lapse++;
-                printf("time lapse: %d\n", lapse);
-                if (lapse%1440 == 0){
-                    printf("<<<+1 dia.>>\n");
-                }
-                bomba_de_entrada(&tanque, 1);
-                pwm_set_gpio_level(LED_GREEN, 0xffff*1);
-                if (tanque >= limite_tanque){
-                        bomba_de_saida(&tanque, 1);
-                        pwm_set_gpio_level(LED_BLUE, 0xffff*1);
-                }
-                printf("TANQUE: %dm³\n\n", tanque);
-                one_lapse=!one_lapse;
-            }
-        }
+                if (modo_manual){
+                    adc_select_input(0); 
+                    uint16_t vry_value = adc_read();
 
+                    adc_select_input(1); 
+                    uint16_t vrx_value = adc_read(); 
+
+                    if (vry_value < 30)
+                        bomba_manual = 1;
+                    if (vry_value > 4000)
+                        bomba_manual = 2;
+                    
+                    
+                    if (bomba_manual != 0){
+                        duty = (vrx_value/4090.0);
+                    }
+
+                    if (bomba_manual == 1)
+                        duty_bomba_entrada = round(duty * 10)/10;
+                    if (bomba_manual == 2)
+                        duty_bomba_saida = round(duty * 10)/10;
+
+                    if (duty_bomba_entrada - duty_bomba_saida <= 0.1){
+                        duty_bomba_entrada = duty_bomba_saida;
+                    }
+                    
+                    printf("CIMA: saída, BAIXO: entrada\n");
+                    printf("bomba: %d\n", bomba_manual);
+                    printf("entrada: %f\n", duty_bomba_entrada);
+                    printf("saida: %f\n", duty_bomba_saida);
+                    one_lapse=!one_lapse;
+                }
+                else{
+                    // O dia tem 1440 minutos, 1440 segundos seria 24 minutos. 
+                    // Então para caber na explicação. 1440/24 seg = 60 seg = 1min
+                    // Um dia na vida real tem um minuto na simulacao.
+                    lapse++;
+                    bomba_manual = 0;
+                    bomba_de_entrada(&tanque, duty_bomba_entrada);
+                    bomba_de_saida(&tanque, duty_bomba_saida);
+                    pwm_set_gpio_level(LED_GREEN, 0xffff*duty_bomba_entrada);
+
+                    if (tanque >= limite_tanque){
+                            bomba_de_saida(&tanque, 1);
+                    }
+                    pwm_set_gpio_level(LED_BLUE, 0xffff*duty_bomba_saida);
+                    printf("TANQUE: %dm³\n", tanque);
+                    one_lapse=!one_lapse;
+                    
+                }
+       
+            }
 
         // sleep_ms(1000);
     }
