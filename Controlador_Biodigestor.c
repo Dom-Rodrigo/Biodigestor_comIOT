@@ -141,9 +141,10 @@ int main()
     int tanque = 0;
     int limite_tanque = 6000;
     struct repeating_timer timer;
-    add_repeating_timer_ms(1000/12, repeating_timer_callback, false, &timer);
+    add_repeating_timer_ms(1000/24, repeating_timer_callback, false, &timer);
     
     int lapse = 0;
+    int dias = 0;
     int bomba_manual = 0;
     float duty;
     while (true) {
@@ -204,7 +205,12 @@ int main()
                 // Então para caber na explicação. 1440/24 seg = 60 seg = 1min
                 // Um dia na vida real tem um minuto na simulacao.
                 lapse++;
-                if (lapse % 1440 == 0)
+                if (lapse % 1440 == 0) {
+                    dias++;
+                    if (tanque == 0){
+                        dias = 0; // Reseta o numero de dias
+                    }
+                }
 
                 bomba_manual = 0;
                 bomba_de_entrada(&tanque, duty_bomba_entrada);
@@ -233,7 +239,12 @@ int main()
 
         // DISPLAY
         ssd1306_fill(&ssd, false);
-        ssd1306_draw_string(&ssd, "TOTAL  1000dias", 0, 0);
+
+        // LINHA QUE MOSTRA O TOTAL DE DIAS COM QUE O TANQUE RECEBEU O SUBSTRATO
+        char linha_dias[15];
+        sprintf(linha_dias, "TOTAL %4dd", dias);
+        ssd1306_draw_string(&ssd, linha_dias, 0, 0);
+
         ssd1306_draw_string(&ssd, "               ", 0, 8);
 
         // LINHA QUE DIZ SE A HÉLICE DO AGITADOR ESTÁ FUNCIONANDO
