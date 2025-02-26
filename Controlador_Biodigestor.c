@@ -141,7 +141,7 @@ int main()
     bool going_up = true;
     float initial_dutycicle = 0.025;
     int tanque = 0;
-    int limite_tanque = 6000;
+    int limite_tanque = 6000 - 16;
     struct repeating_timer timer;
     add_repeating_timer_ms(1000/24, repeating_timer_callback, false, &timer);
     
@@ -221,7 +221,7 @@ int main()
 
 
                 if (tanque > limite_tanque){
-                    if (tanque >= limite_tanque+50){
+                    if (tanque > limite_tanque+16){
                         duty_bomba_entrada = 0;
                         duty_bomba_saida = 1; // Sai até remover o excesso BUZZER vai aqui
                     }
