@@ -60,10 +60,12 @@ void gpio_irq_handler(uint gpio, uint32_t event_mask) {
 
 volatile float duty_bomba_entrada;
 volatile float duty_bomba_saida;
+float vazao_entrada_diaria;
 void bomba_de_entrada(int* tanque, float duty_cycle){
     /* Bomba de lobulos */
     int rpm_entrada = 1300 * duty_cycle; // max
     int vazao = (rpm_entrada * 16)/1300; //max 16 m3 por minuto, nesse prototipo sera m3 por segundo
+    vazao_entrada_diaria = vazao * 1440; // 1440min = um dia;
     (*tanque)+=vazao;
     if (*tanque <= 0)
         *tanque=0;
@@ -287,8 +289,12 @@ int main()
         sprintf(linha_tanque, "VOLUME %d M3", tanque);
         ssd1306_draw_string(&ssd, linha_tanque, 0, 40);
 
-        ssd1306_draw_string(&ssd, "TRH       100d ", 0, 48);
-        ssd1306_draw_string(&ssd, "Esvazia   2d10h", 0, 54);
+
+        // VOLUME TOTAL/TAXA DE RETENÇÃO DO SUBSTRATO = VOLUME DIARIO RECOMENDADO
+        char linha_trh[15];
+        sprintf(linha_trh, "TRH %.0f", vazao_entrada_diaria/tanque);
+        ssd1306_draw_string(&ssd, linha_trh, 0, 48);
+        // ssd1306_draw_string(&ssd, "Esvazia   2d10h", 0, 54);
          // Desenha uma string
         ssd1306_send_data(&ssd);
         // sleep_ms(1000);
