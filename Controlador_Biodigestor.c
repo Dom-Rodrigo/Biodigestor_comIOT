@@ -253,10 +253,10 @@ int main()
         // LINHA QUE DIZ SE A HÉLICE DO AGITADOR ESTÁ FUNCIONANDO
         char linha_helice[15];
         if (agitador_on){
-            sprintf(linha_helice, "HELICE ON");
+            sprintf(linha_helice, "HELICE  ON");
         }
         else{
-            sprintf(linha_helice, "HELICE OFF");
+            sprintf(linha_helice, "HELICE  OFF");
 
         }
         ssd1306_draw_string(&ssd, linha_helice, 0, 16);
@@ -265,10 +265,10 @@ int main()
         // LINHA QUE MOSTRA ESTADO DA BOMBA COM DUTYCYCLE
         char linha_entrada[15];
         if (duty_bomba_entrada > 0.001){
-            sprintf(linha_entrada, "ENTRAD ON %.0f", duty_bomba_entrada*100);
+            sprintf(linha_entrada, "ENTRADA ON %.0f", duty_bomba_entrada*100);
         }
         else{
-            sprintf(linha_entrada, "ENTRAD OFF 0");
+            sprintf(linha_entrada, "ENTRADA OFF 0");
 
         }
         ssd1306_draw_string(&ssd, linha_entrada, 0, 24);
@@ -277,17 +277,17 @@ int main()
         // LINHA QUE MOSTRA ESTADO DA BOMBA COM DUTYCYCLE
         char linha_saida[15];
         if (duty_bomba_saida > 0.001){
-            sprintf(linha_saida, "SAIDA  ON %.0f", duty_bomba_saida*100);
+            sprintf(linha_saida, "SAIDA   ON %.0f", duty_bomba_saida*100);
         }
         else{
-            sprintf(linha_saida, "SAIDA  OFF 0");
+            sprintf(linha_saida, "SAIDA   OFF 0");
 
         }
         ssd1306_draw_string(&ssd, linha_saida, 0, 32);
 
         // LINHA QUE MOSTRA O VOLUME DE SUBSTRATO NO TANQUE BIODIGESTOR
         char linha_tanque[15];
-        sprintf(linha_tanque, "VOLUME %d M3", tanque);
+        sprintf(linha_tanque, "VOLUME  %d M3", tanque);
         if (pisca_volume){
             cor++;
             if (cor % 2 == 0)
