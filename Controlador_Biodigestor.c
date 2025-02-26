@@ -69,8 +69,6 @@ void bomba_de_entrada(int* tanque, float duty_cycle){
     int vazao = (rpm_entrada * 16)/1300.0; //max 16 m3 por minuto, nesse prototipo sera m3 por segundo
     vazao_entrada_diaria = vazao * 1440; // 1440min = um dia;
     (*tanque)+=vazao;
-    if (*tanque <= 0)
-        *tanque=0;
 }
 
 void bomba_de_saida(int* tanque, float duty_cycle){
@@ -145,6 +143,8 @@ int main()
     int lapse = 0;
     int dias = 0;
     int bomba_manual = 0;
+    int cor;
+    int pisca_volume;
     float duty;
     while (true) {
         pwm_set_gpio_level(PWM_AGITADOR, 0xffff*initial_dutycicle);
@@ -208,13 +208,14 @@ int main()
                 pwm_set_gpio_level(LED_BLUE, 0xffff*duty_bomba_saida);
                 bomba_de_entrada(&tanque, duty_bomba_entrada);
                 bomba_de_saida(&tanque, duty_bomba_saida);
-                if (duty_bomba_entrada < duty_bomba_saida && tanque > 0){
+                if ((duty_bomba_entrada < duty_bomba_saida) && tanque > 0){
                     pwm_set_gpio_level(BUZZER_A, 0xffff*1);
-                    sleep_ms(500); // Mantém por 500ms antes de desligar
+                    pisca_volume = true;
 
                 }
                 else{
                     pwm_set_gpio_level(BUZZER_A, 0);
+                    pisca_volume = false;
 
                 }
 
@@ -223,6 +224,7 @@ int main()
                         duty_bomba_entrada = 0;
                         duty_bomba_saida = 1; // Sai até remover o excesso BUZZER vai aqui
                         pwm_set_gpio_level(BUZZER_A, 0xffff*1);
+                        sleep_us(100);
                     }
                     else {
                         duty_bomba_saida = 1; // Estabiliza
@@ -286,7 +288,18 @@ int main()
         // LINHA QUE MOSTRA O VOLUME DE SUBSTRATO NO TANQUE BIODIGESTOR
         char linha_tanque[15];
         sprintf(linha_tanque, "VOLUME %d M3", tanque);
-        ssd1306_draw_string(&ssd, linha_tanque, 0, 40);
+        if (pisca_volume){
+            cor++;
+            if (cor % 2 == 0)
+                ssd1306_draw_string(&ssd, linha_tanque, 0, 40);
+            else
+                ssd1306_draw_string(&ssd, "              ", 0, 40);
+
+        }
+        else {
+            ssd1306_draw_string(&ssd, linha_tanque, 0, 40);
+        }
+
 
 
         // VOLUME TOTAL/Tempo DE RETENÇÃO hidráulica = VOLUME DIARIO RECOMENDADO
