@@ -228,7 +228,7 @@ int main()
 
                 }
                 else{
-                    pwm_set_gpio_level(BUTTON_A, 0);
+                    pwm_set_gpio_level(BUZZER_A, 0);
 
                 }
 
@@ -305,7 +305,7 @@ int main()
         ssd1306_draw_string(&ssd, linha_tanque, 0, 40);
 
 
-        // VOLUME TOTAL/TAXA DE RETENÇÃO DO SUBSTRATO = VOLUME DIARIO RECOMENDADO
+        // VOLUME TOTAL/Tempo DE RETENÇÃO hidráulica = VOLUME DIARIO RECOMENDADO
         char linha_trh[15];
         sprintf(linha_trh, "TRH %.0f", vazao_entrada_diaria/tanque);
         ssd1306_draw_string(&ssd, linha_trh, 0, 48);
