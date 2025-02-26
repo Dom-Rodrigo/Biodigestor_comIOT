@@ -14,6 +14,9 @@
 #define BUTTON_B 6
 #define BUTTON_BOOTSEL 22
 
+#define BUZZER_A 10
+#define BUZZER_WRAP 1953
+
 #define LED_GREEN 11
 #define LED_BLUE 12
 #define LED_RED 13
@@ -26,11 +29,11 @@
 #define I2C_SCL 15
 #define endereco 0x3C
 
-uint pwm_setup(int gpio){
+uint pwm_setup(int gpio, int wrap){
     /* 60Hz pro motor e bombas*/
     gpio_set_function(gpio, GPIO_FUNC_PWM);
     uint slice = pwm_gpio_to_slice_num(gpio);
-    pwm_set_wrap(slice, 65535);
+    pwm_set_wrap(slice, wrap);
     pwm_set_clkdiv(slice, 32); 
     pwm_set_enabled(slice, true);
     return slice;
@@ -110,9 +113,10 @@ int main()
 
     adc_init();
 
-    uint slice_agitador = pwm_setup(PWM_AGITADOR);
-    uint slice_bomba_entrada = pwm_setup(LED_GREEN);
-    uint slice_bomba_saida = pwm_setup(LED_BLUE);
+    uint slice_agitador = pwm_setup(PWM_AGITADOR, 65353);
+    uint slice_bomba_entrada = pwm_setup(LED_GREEN, 65353);
+    uint slice_bomba_saida = pwm_setup(LED_BLUE, 65353);
+    uint slice_buzzer = pwm_setup(BUZZER_A, BUZZER_WRAP); // 2000Hz
 
     adc_gpio_init(VRX_PIN); 
     adc_gpio_init(VRY_PIN); 
@@ -219,11 +223,11 @@ int main()
                 bomba_de_saida(&tanque, duty_bomba_saida);
                 pwm_set_gpio_level(LED_GREEN, 0xffff*duty_bomba_entrada);
 
-
                 if (tanque > limite_tanque){
                     if (tanque > limite_tanque+16){
                         duty_bomba_entrada = 0;
                         duty_bomba_saida = 1; // Sai até remover o excesso BUZZER vai aqui
+                        pwm_set_gpio_level(BUZZER_A, BUZZER_WRAP*1);
                     }
                     else {
                         duty_bomba_saida = 1; // Estabiliza
@@ -234,6 +238,8 @@ int main()
                 pwm_set_gpio_level(LED_BLUE, 0xffff*duty_bomba_saida);
                 printf("TANQUE: %dm³\n", tanque);
                 one_lapse=!one_lapse;
+                pwm_set_gpio_level(BUZZER_A, BUZZER_WRAP*0);
+
                 
             }
     
