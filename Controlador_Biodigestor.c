@@ -304,7 +304,7 @@ int main()
 
         // VOLUME TOTAL/Tempo DE RETENÇÃO hidráulica = VOLUME DIARIO RECOMENDADO
         char linha_trh[15];
-        sprintf(linha_trh, "TRH %.0f", vazao_entrada_diaria/tanque);
+        sprintf(linha_trh, "TRH %.0f d", vazao_entrada_diaria/tanque);
         ssd1306_draw_string(&ssd, linha_trh, 0, 48);
         // ssd1306_draw_string(&ssd, "Esvazia   2d10h", 0, 54);
          // Desenha uma string
