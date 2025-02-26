@@ -15,7 +15,7 @@
 #define BUTTON_BOOTSEL 22
 
 #define BUZZER_A 10
-#define BUZZER_WRAP 1953
+#define BUZZER_A_WRAP 1953
 
 #define LED_GREEN 11
 #define LED_BLUE 12
@@ -115,8 +115,8 @@ int main()
 
     uint slice_agitador = pwm_setup(PWM_AGITADOR, 65353);
     uint slice_bomba_entrada = pwm_setup(LED_GREEN, 65353);
-    uint slice_bomba_saida = pwm_setup(LED_BLUE, 65353);
-    uint slice_buzzer = pwm_setup(BUZZER_A, BUZZER_WRAP); // 2000Hz
+    uint slice_bomba_saida = pwm_setup(LED_BLUE, 65353);  // 60Hz
+    uint slice_buzzer = pwm_setup(BUZZER_A, BUZZER_A_WRAP); // 2000Hz
 
     adc_gpio_init(VRX_PIN); 
     adc_gpio_init(VRY_PIN); 
@@ -182,9 +182,9 @@ int main()
                 uint16_t vrx_value = adc_read(); 
 
                 if (vry_value < 30)
-                    bomba_manual = 1;
-                if (vry_value > 4000)
                     bomba_manual = 2;
+                if (vry_value > 4000)
+                    bomba_manual = 1;
                 
                 
                 if (bomba_manual != 0){
@@ -223,11 +223,20 @@ int main()
                 bomba_de_saida(&tanque, duty_bomba_saida);
                 pwm_set_gpio_level(LED_GREEN, 0xffff*duty_bomba_entrada);
 
+                if (duty_bomba_entrada < duty_bomba_saida && tanque > 0){
+                    pwm_set_gpio_level(BUZZER_A, BUZZER_A_WRAP*1);
+
+                }
+                else{
+                    pwm_set_gpio_level(BUTTON_A, 0);
+
+                }
+
                 if (tanque > limite_tanque){
                     if (tanque > limite_tanque+16){
                         duty_bomba_entrada = 0;
                         duty_bomba_saida = 1; // Sai até remover o excesso BUZZER vai aqui
-                        pwm_set_gpio_level(BUZZER_A, BUZZER_WRAP*1);
+                        pwm_set_gpio_level(BUZZER_A, BUZZER_A_WRAP*1);
                     }
                     else {
                         duty_bomba_saida = 1; // Estabiliza
@@ -238,7 +247,7 @@ int main()
                 pwm_set_gpio_level(LED_BLUE, 0xffff*duty_bomba_saida);
                 printf("TANQUE: %dm³\n", tanque);
                 one_lapse=!one_lapse;
-                pwm_set_gpio_level(BUZZER_A, BUZZER_WRAP*0);
+                pwm_set_gpio_level(BUZZER_A, BUZZER_A_WRAP*0);
 
                 
             }
