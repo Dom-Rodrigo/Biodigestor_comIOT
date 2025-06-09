@@ -54,11 +54,17 @@ target_include_directories(Controlador_Biodigestor PRIVATE
 )
 
 # Add any user requested libraries
-target_link_libraries(Controlador_Biodigestor 
+target_link_libraries(Controlador_Biodigestor
+        pico_stdlib 
         hardware_pwm
         pico_bootrom
         hardware_adc
         hardware_i2c
+        pico_cyw43_arch_lwip_threadsafe_background
+        pico_lwip_mqtt
+        pico_mbedtls
+        pico_lwip_mbedtls
+
         )
 
 pico_add_extra_outputs(Controlador_Biodigestor)
